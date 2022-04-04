@@ -11,6 +11,7 @@ import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import store from "./store";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "font-awesome/css/font-awesome.min.css";
 import Willmount from './Willmount'
 ReactDOM.render(
 

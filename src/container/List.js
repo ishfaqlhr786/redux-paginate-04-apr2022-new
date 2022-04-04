@@ -1,13 +1,19 @@
+
+
+
 import React ,{useState,useEffect,useCallback} from 'react'
 import {useDispatch,useSelector}  from 'react-redux'
 import {EditProduct} from './EditProduct'
-import {GetProductList}  from '../actions/ProductActions'
+import {GetProductList, SearchCategory}  from '../actions/ProductActions'
 import {DelProduct}   from '../actions/ProductActions'
+import  {EditProduct1}  from '../actions/ProductActions'
 import {CreateProductNew}  from '../actions/ProductActions'
+import {SearchId1}  from '../actions/ProductActions'
 import {useHistory,useLocation}  from 'react-router-dom'
 import QueryString  from 'query-string'
 import {Pagination}  from './Pagination'
 import {SelectAll2} from './SelectAll2'
+
 import '../App.css'
 export const List = () => {
     const loc=useLocation()
@@ -20,11 +26,19 @@ export const List = () => {
     const products=useSelector((state)=> state.List)
     const DelOne=useSelector((state)=>state.DeleteOne)
     console.log(DelOne)
+    const editOne=useSelector((state)=>state.EditProduct)
+    console.log(editOne)
+    const searchCat=useSelector((state)=>state.SearchCat)
+    console.log("search data is",searchCat.data)
+    const searchid=useSelector((state)=>state.SearchId1)
+    console.log(searchid.data)
+
     console.log(products.data)
     const [currentItems,setCurrentItems]=useState([])
     const [ProductId,setPid]=useState(0)
     const [limit,setLimit]= useState(parsed.limit)
-    
+    const [category,setCategory]=useState("plz enter category")
+    const [searchId,setSearchId]=useState(0)
     const [showPerPage,setShowPerPage]= useState(limit)
     const [pagination,setPagination]=useState({
         start:parsed.offset,
@@ -37,6 +51,14 @@ export const List = () => {
         price:0,
         image:""
     })
+    const [editForm,setEditForm]=useState({
+        id:0,
+        category:"",
+        title:"",
+        price:0,
+        image:""
+       
+      })
   
     useEffect(()=>{
       
@@ -46,11 +68,12 @@ export const List = () => {
    
     
     
+   
     useEffect(()=>{
-      //  setCurrentItems([...products.data.slice(pagination.start,pagination.end)])
-      dispatch(GetProductList())
-    },[])
-    
+        //  setCurrentItems([...products.data.slice(pagination.start,pagination.end)])
+        dispatch(GetProductList())
+      },[])
+      
     const onPageChange=(start,end)=>{
    
         console.log(start, end)
@@ -61,10 +84,22 @@ export const List = () => {
         })
       }
    
-    const EditClicked=(e,index,id)=>{
+    const EditClicked=(e,index,id,item)=>{
         e.preventDefault()
         console.log(index)
         setPid(id)
+        const editData={
+            id:item.id,
+             category:item.category,
+            price:item.price,
+            title:item.title,
+            image:item.image
+            
+     
+     
+         }
+         setEditForm(editData)
+
     }
     const handleLimit=(e)=>{
         e.preventDefault()
@@ -72,6 +107,34 @@ export const List = () => {
         setShowPerPage(e.target.value)
         onPageChange(0, e.target.value)
           
+    }
+    const handleSearchByCategory=(e,category)=>{
+        e.preventDefault();
+        console.log(category)
+      
+       
+        dispatch(SearchCategory(category))
+       
+   const a=  currentItems.filter(p=>p.category===category)
+   console.log(a)
+   let newData=[]
+   newData= a;
+   console.log(newData)
+   setCurrentItems(newData)
+    }
+    const handleSearchById=(e)=>{
+        e.preventDefault();
+        console.log(searchId)
+      
+       
+        dispatch(SearchId1(searchId))
+       
+   const a=  currentItems.filter(p=>p.id===  parseInt(searchId))
+   console.log(a)
+   let newData=[]
+   newData= a;
+   console.log(newData)
+   setCurrentItems(newData)
     }
     
     useEffect(()=>{
@@ -129,11 +192,18 @@ export const List = () => {
         e.preventDefault()
         setForm({...form,[e.target.name]:e.target.value})
     }
+    
+    const EditHandle=(e)=>{
+        e.preventDefault()
+        setEditForm({...editForm,[e.target.name]:e.target.value})
+    }
+    const handleCancel=()=>{
+        setPid(0);
+    }
     const handleSubmit=(e)=>{
         e.preventDefault()
         console.log("form data is=",form)
-        // const res=await axios.post(`https://fakestoreapi.com/products/`,form)
-        // console.log(res.data)
+       
         dispatch(CreateProductNew(form))
         const newItem={
             id: parseInt(form.id),
@@ -144,13 +214,31 @@ export const List = () => {
           }
           const newData=[...currentItems]
           newData.push(newItem)
-       // let arr=[...currentItems,form]
-       // arr.push(res.data)
-       // setList(arr)
+     
         setCurrentItems(newData)
       
        
     
+    }
+    const handleEditSubmit=(e)=>{
+      //  const  handleEditFormSubmit=async(e)=>{
+            e.preventDefault();
+            console.log(editForm)
+            dispatch(EditProduct1(editForm,ProductId))
+          
+                const newproducts = [...currentItems]
+              
+                const index = newproducts.findIndex((product) => product.id === ProductId)
+                console.log(index)
+              //  newproducts[index] = res.data;
+                newproducts[index]= editForm
+              
+                setCurrentItems(newproducts)
+              //  setList(newproducts)
+              setPid(0)
+            //  })
+          
+
     }
     
     
@@ -166,10 +254,58 @@ export const List = () => {
     
     
       }
+      const EditImage=(e)=>{
+        try {
+          setEditForm({ ...editForm, image: URL.createObjectURL(e.target.files[0]) }
+    
+          )
+        }
+        catch {
+          return 0
+        }
+    
+    
+      }
      
    // console.log(ProductId)
     return (
         <div>
+            <form>
+                <table>
+                    <tr>
+                        <td>
+                            <label>Search by Category</label>
+                        </td>
+                        <td><input type="text" value={category} onChange={(e)=>
+                    setCategory(e.target.value)    
+                    }/>
+                    <button onClick={(e)=>handleSearchByCategory(e,category)}
+                    className="btn btn-md btn-primary"
+                    >
+                    <i className="fa fa-search-plus" 
+                       style={{fontSize:"20px"}}
+                       aria-hidden="true"></i>
+                    </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Search by ID</label>
+                        </td>
+                        <td><input type="number" value={searchId} onChange={(e)=>
+                    setSearchId(e.target.value)    
+                    }/>
+                    <button onClick={(e)=>handleSearchById(e)}
+                    className="btn btn-md btn-primary"
+                    >
+                    <i className="fa fa-search-plus" 
+                       style={{fontSize:"20px"}}
+                       aria-hidden="true"></i>
+                    </button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
              <span>
                   
                   <button 
@@ -177,8 +313,9 @@ export const List = () => {
                   onClick={(e)=>deleteSelected(e)}>Delete Selected
                   <i class="fa fa-trash" aria-hidden="true"></i></button>
                   </span>  
-            <table>
-                <tr>
+                  <form onSubmit={handleEditSubmit}>
+            <table width="100%" border="5px solid black">
+                <tr style={{backgroundColor:"grey"}}>
                 <th style={{paddingLeft:"20px"}}>
                    <SelectAll2 list={currentItems}   handleChange={handleChangeChk} 
                    
@@ -199,13 +336,21 @@ export const List = () => {
                     <th>
                         Picture
                     </th>
+                    <th>
+                        Edit
+                    </th>
+                    <th>
+                        Delete
+                    </th>
                 </tr>
                 {
                     currentItems.map((item,index)=>{
                         const {id,category,title,image,price}= item;
                         return(<>
-                      {  ProductId ===item.id ?( <EditProduct pid={ProductId}/>): (
-                            <tr>
+                      {  ProductId ===item.id ?( <EditProduct pid={ProductId}
+                      editForm={editForm} EditHandle={EditHandle} handleCancel={handleCancel} EditImage={EditImage}
+                      />): (
+                            <tr style={{border:"2px solid lightgrey",overflow:"hidden"}}>
                                 <td style={{paddingLeft:"20px"}}>
                 <input type="checkbox" 
               className="  custom-control-input"
@@ -219,13 +364,22 @@ export const List = () => {
                                 <td>{title}</td>
                                 <td>{price}</td>
                                 <td>
-                                    <img src={image} alt="ll" width="200px"  height="200px"/>
+                                    <img src={image} alt="ll"    style={{borderRadius:"50%",height:"100px",width:"100px"}}/>
                                 </td>
                                 <td>
-                                    <button onClick={(e)=>EditClicked(e,index,id)}>Edit</button>
+                                    <button onClick={(e)=>EditClicked(e,index,id,item)}
+                                    className="btn btn-md btn-warning"
+                                    >
+
+                                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                                    </button>
                                 </td>
                                 <td>
-                                    <button onClick={(e)=>HandleDelete(e,id,index)}>Delete</button>
+                                    <button onClick={(e)=>HandleDelete(e,id,index)}
+                                    className="btn btn-md btn-danger"
+                                    >
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
                                 </td>
                             </tr>
                         )
@@ -235,6 +389,7 @@ export const List = () => {
                     })
                 }
             </table>
+            </form>
             <ul style={{display:"flex", listStyleType:"none",marginLeft:"500px"}}>
           <li>
       <select style={{height:"40px",width:"100px"}}
@@ -263,25 +418,25 @@ export const List = () => {
             <form onSubmit={(e)=>handleSubmit(e)}>
             <label className="custom-control-label">ID</label>
                 <input type="number" 
-                 className="form-control"
+                 className=""
                 name="id" required="" value={form.id}
                 onChange={handleChange}
                 />
               <label className="custom-control-label">Title</label>
                 <input type="text" 
-                 className="form-control"
+                 className=""
                 name="title" required="required" value={form.title}
                 onChange={handleChange}
                 />
                 <label className="custom-control-label">Category</label>
                 <input type="text" 
-                 className="form-control"
+                 className=""
                 name="category" required="required" value={form.category}
                 onChange={handleChange}
                 />
                 <label className="custom-control-label">Price</label>
                 <input type="number"
-                 className="form-control"
+                 className=""
                 name="price" required="required" value={form.price}
                 onChange={handleChange}
                 /><br/>
