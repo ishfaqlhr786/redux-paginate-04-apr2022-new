@@ -13,6 +13,7 @@ import {useHistory,useLocation}  from 'react-router-dom'
 import QueryString  from 'query-string'
 import {Pagination}  from './Pagination'
 import {SelectAll2} from './SelectAll2'
+import  {nanoid } from 'nanoid'
 
 import '../App.css'
 export const List = () => {
@@ -24,6 +25,7 @@ export const List = () => {
    console.log(parsed.offset)
     const dispatch=useDispatch()
     const products=useSelector((state)=> state.List)
+    console.log(products.loading)
     const DelOne=useSelector((state)=>state.DeleteOne)
     console.log(DelOne)
     const editOne=useSelector((state)=>state.EditProduct)
@@ -45,7 +47,7 @@ export const List = () => {
         end:showPerPage
     })
     const [form,setForm]= useState({
-        id:0,
+       id:0,
         category:"",
         title:"",
         price:0,
@@ -63,6 +65,7 @@ export const List = () => {
     useEffect(()=>{
       
         setCurrentItems([...products.data.slice(pagination.start,pagination.end)])
+        //products.loading= true
       },[pagination.start,pagination.end,limit])
     console.log(currentItems)
    
@@ -108,8 +111,9 @@ export const List = () => {
         onPageChange(0, e.target.value)
           
     }
+   
     const handleSearchByCategory=(e,category)=>{
-        e.preventDefault();
+       e.preventDefault();
         console.log(category)
       
        
@@ -122,6 +126,7 @@ export const List = () => {
    console.log(newData)
    setCurrentItems(newData)
     }
+    
     const handleSearchById=(e)=>{
         e.preventDefault();
         console.log(searchId)
@@ -206,7 +211,7 @@ export const List = () => {
        
         dispatch(CreateProductNew(form))
         const newItem={
-            id: parseInt(form.id),
+          id:  parseInt(form.id),
             category:form.category,
             price:form.price,
             title:form.title,
@@ -214,8 +219,9 @@ export const List = () => {
           }
           const newData=[...currentItems]
           newData.push(newItem)
-     
-        setCurrentItems(newData)
+    // const newData=[...products.data]
+    // newData.push(newItem)
+       setCurrentItems(newData)
       
        
     
@@ -269,7 +275,7 @@ export const List = () => {
      
    // console.log(ProductId)
     return (
-        <div>
+        <div style={{backgroundColor:"#b8e994"}}>
             <form>
                 <table>
                     <tr>
@@ -280,10 +286,10 @@ export const List = () => {
                     setCategory(e.target.value)    
                     }/>
                     <button onClick={(e)=>handleSearchByCategory(e,category)}
-                    className="btn btn-md btn-primary"
+                    className="btn btn-sm btn-primary"
                     >
                     <i className="fa fa-search-plus" 
-                       style={{fontSize:"20px"}}
+                       style={{fontSize:"10px"}}
                        aria-hidden="true"></i>
                     </button>
                         </td>
@@ -296,7 +302,7 @@ export const List = () => {
                     setSearchId(e.target.value)    
                     }/>
                     <button onClick={(e)=>handleSearchById(e)}
-                    className="btn btn-md btn-primary"
+                    className="btn btn-sm btn-primary"
                     >
                     <i className="fa fa-search-plus" 
                        style={{fontSize:"20px"}}
@@ -350,7 +356,7 @@ export const List = () => {
                       {  ProductId ===item.id ?( <EditProduct pid={ProductId}
                       editForm={editForm} EditHandle={EditHandle} handleCancel={handleCancel} EditImage={EditImage}
                       />): (
-                            <tr style={{border:"2px solid lightgrey",overflow:"hidden"}}>
+                            <tr style={{border:"2px solid #b71540",overflow:"hidden"}}>
                                 <td style={{paddingLeft:"20px"}}>
                 <input type="checkbox" 
               className="  custom-control-input"
